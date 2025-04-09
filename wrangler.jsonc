@@ -1,11 +1,17 @@
 {
-  "name": "my-chat-agent",
+  "name": "chat-agent",
   "main": "src/server.ts",
   "compatibility_date": "2025-02-04",
   "compatibility_flags": [
     "nodejs_compat",
     "nodejs_compat_populate_process_env",
   ],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "invocation_logs": true,
+    },
+  },
   "assets": {
     "directory": "public",
   },

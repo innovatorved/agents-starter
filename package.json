@@ -10,7 +10,8 @@
     "test": "vitest",
     "types": "wrangler types",
     "format": "prettier --write .",
-    "check": "prettier . --check && biome lint && tsc"
+    "check": "prettier . --check && biome lint && tsc",
+    "sync-secret": "wrangler secret bulk .dev.vars"
   },
   "keywords": [
     "cloudflare",
@@ -37,7 +38,7 @@
     "wrangler": "^4.9.1"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^1.3.9",
+    "@ai-sdk/google": "^1.2.10",
     "@ai-sdk/react": "^1.2.8",
     "@ai-sdk/ui-utils": "^1.2.7",
     "@phosphor-icons/react": "^2.1.7",

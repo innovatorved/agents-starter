@@ -9,16 +9,19 @@ import {
   streamText,
   type StreamTextOnFinishCallback,
 } from "ai";
-import { openai } from "@ai-sdk/openai";
+// import { openai } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
+
 import { processToolCalls } from "./utils";
 import { tools, executions } from "./tools";
 import { AsyncLocalStorage } from "node:async_hooks";
 // import { env } from "cloudflare:workers";
 
-const model = openai("gpt-4o-2024-11-20");
+// const model = openai("gpt-4o-2024-11-20");
+const model = google("gemini-2.0-flash-lite");
 // Cloudflare AI Gateway
 // const openai = createOpenAI({
-//   apiKey: env.OPENAI_API_KEY,
+//   apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
 //   baseURL: env.GATEWAY_BASE_URL,
 // });
 
@@ -94,15 +97,15 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
 
-    if (url.pathname === "/check-open-ai-key") {
-      const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+    if (url.pathname === "/check-ai-key") {
+      const hasAIKey = !!process.env.GOOGLE_GENERATIVE_AI_API_KEY;
       return Response.json({
-        success: hasOpenAIKey,
+        success: hasAIKey,
       });
     }
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
       console.error(
-        "OPENAI_API_KEY is not set, don't forget to set it locally in .dev.vars, and use `wrangler secret bulk .dev.vars` to upload it to production"
+        "GOOGLE_GENERATIVE_AI_API_KEY is not set, don't forget to set it locally in .dev.vars, and use `wrangler secret bulk .dev.vars` to upload it to production"
       );
     }
     return (
