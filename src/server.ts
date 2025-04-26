@@ -55,7 +55,6 @@ export class Chat extends AIChatAgent<Env> {
             executions,
           });
 
-          // Stream the AI response using GPT-4
           const result = streamText({
             model,
             system: `You are a helpful assistant that can do various tasks...
@@ -81,6 +80,7 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
       return dataStreamResponse;
     });
   }
+
   async executeTask(description: string, task: Schedule<string>) {
     await this.saveMessages([
       ...this.messages,
@@ -140,7 +140,7 @@ export default {
       );
     }
 
-    const durableObjectId = env.Chat.idFromName("userId");
+    const durableObjectId = env.Chat.idFromName(userId);
     const agentStub = env.Chat.get(durableObjectId);
 
     // return (
