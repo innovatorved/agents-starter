@@ -10,7 +10,7 @@ import {
   type StreamTextOnFinishCallback,
 } from "ai";
 // import { openai } from "@ai-sdk/openai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { google } from "@ai-sdk/google";
 
 import { processToolCalls } from "./utils";
 import { tools, executions } from "./tools";
@@ -24,10 +24,10 @@ import { env } from "cloudflare:workers";
 //   baseURL: env.GATEWAY_BASE_URL,
 // });
 
-const google = createGoogleGenerativeAI({
-  apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
-  baseURL: env.GATEWAY_BASE_URL,
-});
+// const google = createGoogleGenerativeAI({
+//   apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
+//   baseURL: env.GATEWAY_BASE_URL,
+// });
 const model = google("gemini-2.0-flash");
 
 // we use ALS to expose the agent context to the tools
