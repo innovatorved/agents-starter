@@ -1,6 +1,6 @@
 ---
 description: Building Cloudflare Workers and Agents
-globs: 
+globs:
 alwaysApply: false
 ---
 <system_context>
@@ -940,7 +940,7 @@ import { OpenAI } from "openai";
 
 interface Env {
   AIAgent: AgentNamespace<Agent>;
-  OPENAI_API_KEY: string;
+  GOOGLE_GENERATIVE_AI_API_KEY: string;
 }
 
 export class AIAgent extends Agent {
@@ -948,7 +948,7 @@ export class AIAgent extends Agent {
   async onRequest(request) {
     // Connect with AI capabilities
     const ai = new OpenAI({
-      apiKey: this.env.OPENAI_API_KEY,
+      apiKey: this.env.GOOGLE_GENERATIVE_AI_API_KEY,
     });
 
     // Process and understand
@@ -1059,7 +1059,7 @@ export class AIAgent extends Agent {
     }
 
     const client = new OpenAI({
-      apiKey: this.env.OPENAI_API_KEY,
+      apiKey: this.env.GOOGLE_GENERATIVE_AI_API_KEY,
     });
 
     // Combine user history with the current prompt
@@ -1257,7 +1257,7 @@ Workers AI supports structured JSON outputs with JSON mode, which supports the `
 import { OpenAI } from "openai";
 
 interface Env {
-  OPENAI_API_KEY: string;
+  GOOGLE_GENERATIVE_AI_API_KEY: string;
 }
 
 // Define your JSON schema for a calendar event
@@ -1274,7 +1274,7 @@ const CalendarEventSchema = {
 export default {
   async fetch(request: Request, env: Env) {
     const client = new OpenAI({
-      apiKey: env.OPENAI_API_KEY,
+      apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
       // Optional: use AI Gateway to bring logs, evals & caching to your AI requests
       // https://developers.cloudflare.com/ai-gateway/providers/openai/
       // baseUrl: "https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/openai"
