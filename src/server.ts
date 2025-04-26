@@ -1,4 +1,9 @@
-import { routeAgentRequest, type Schedule } from "agents";
+import {
+  getAgentByName,
+  routeAgentRequest,
+  type AgentNamespace,
+  type Schedule,
+} from "agents";
 
 import { unstable_getSchedulePrompt } from "agents/schedule";
 
@@ -9,26 +14,20 @@ import {
   streamText,
   type StreamTextOnFinishCallback,
 } from "ai";
-// import { openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
 
 import { processToolCalls } from "./utils";
 import { tools, executions } from "./tools";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { env } from "cloudflare:workers";
+import { getCookieValue } from "./lib/utils";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 
-// const model = openai("gpt-4o-2024-11-20");
-// Cloudflare AI Gateway
-// const openai = createOpenAI({
-//   apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
-//   baseURL: env.GATEWAY_BASE_URL,
-// });
-
-// const google = createGoogleGenerativeAI({
-//   apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
-//   baseURL: env.GATEWAY_BASE_URL,
-// });
 const model = google("gemini-2.0-flash");
+
+interface Env {
+  Chat: AgentNamespace<Chat>;
+}
 
 // we use ALS to expose the agent context to the tools
 export const agentContext = new AsyncLocalStorage<Chat>();
@@ -101,6 +100,33 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
+    const cookieHeader = request.headers.get("Cookie") || "";
+    const token = getCookieValue(cookieHeader, "CF_Authorization");
+
+    const Cloudflare_AUD = process.env.POLICY_AUD;
+    const TEAM_DOMAIN = process.env.TEAM_DOMAIN;
+    const CERTS_URL = `${TEAM_DOMAIN}/cdn-cgi/access/certs`;
+    let userId = "no_user";
+
+    try {
+      const JWKS = createRemoteJWKSet(new URL(CERTS_URL));
+
+      const result = await jwtVerify(token!, JWKS, {
+        issuer: TEAM_DOMAIN,
+        audience: Cloudflare_AUD,
+      });
+      userId = result.payload.sub || "no_user";
+    } catch (error) {
+      console.error("Error verifying token:", error);
+    }
+
+    console.log({
+      url,
+      token,
+      TEAM_DOMAIN,
+      CERTS_URL,
+      userId,
+    });
 
     if (url.pathname === "/check-open-ai-key") {
       const hasOpenAIKey = !!process.env.GOOGLE_GENERATIVE_AI_API_KEY;
@@ -113,10 +139,19 @@ export default {
         "GOOGLE_GENERATIVE_AI_API_KEY is not set, don't forget to set it locally in .dev.vars, and use `wrangler secret bulk .dev.vars` to upload it to production"
       );
     }
-    return (
-      // Route the request to our agent or return 404 if not found
-      (await routeAgentRequest(request, env)) ||
-      new Response("Not found", { status: 404 })
-    );
+
+    const durableObjectId = env.Chat.idFromName("userId");
+    const agentStub = env.Chat.get(durableObjectId);
+
+    // return (
+    //   // Route the request to our agent or return 404 if not found
+    //   (await routeAgentRequest(request, env)) ||
+    //   new Response("Not found", { status: 404 })
+    // );
+    //
+    let namedAgent = getAgentByName<Env, Chat>(env.Chat, userId);
+    // Pass the incoming request straight to your Agent
+    let namedResp = (await namedAgent).fetch(request);
+    return namedResp;
   },
 } satisfies ExportedHandler<Env>;
