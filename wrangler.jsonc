@@ -25,7 +25,7 @@
     {
       "binding": "DB",
       "database_name": "chat-db",
-      "database_id": "6617b9f8-93af-4b0c-88e5-584bfb548711",
+      "database_id": "f1d10d75-ddca-4a31-a991-89ae0a124851",
     },
   ],
   "migrations": [

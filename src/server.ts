@@ -1,3 +1,4 @@
+import { getCookieValue } from "./lib/utils";
 import {
   getAgentByName,
   routeAgentRequest,
@@ -5,11 +6,89 @@ import {
   type Schedule,
 } from "agents";
 
-import { getCookieValue } from "./lib/utils";
-import { createRemoteJWKSet, jwtVerify } from "jose";
-import { Chat, agentContext } from "./lib/agent";
+import { unstable_getSchedulePrompt } from "agents/schedule";
 
-export { Chat, agentContext };
+import { AIChatAgent } from "agents/ai-chat-agent";
+import {
+  createDataStreamResponse,
+  generateId,
+  streamText,
+  type StreamTextOnFinishCallback,
+} from "ai";
+import { google } from "@ai-sdk/google";
+
+import { AsyncLocalStorage } from "node:async_hooks";
+import { env } from "cloudflare:workers";
+import { createRemoteJWKSet, jwtVerify } from "jose";
+import { executions, tools } from "@/tools";
+import { processToolCalls } from "./utils";
+
+const model = google("gemini-2.0-flash");
+
+// we use ALS to expose the agent context to the tools
+export const agentContext = new AsyncLocalStorage<Chat>();
+/**
+ * Chat Agent implementation that handles real-time AI chat interactions
+ */
+export class Chat extends AIChatAgent<Env> {
+  /**
+   * Handles incoming chat messages and manages the response stream
+   * @param onFinish - Callback function executed when streaming completes
+   */
+
+  // biome-ignore lint/complexity/noBannedTypes: <explanation>
+  async onChatMessage(onFinish: StreamTextOnFinishCallback<{}>) {
+    // Create a streaming response that handles both text and tool outputs
+    return agentContext.run(this, async () => {
+      const dataStreamResponse = createDataStreamResponse({
+        execute: async (dataStream) => {
+          // Process any pending tool calls from previous messages
+          // This handles human-in-the-loop confirmations for tools
+          const processedMessages = await processToolCalls({
+            messages: this.messages,
+            dataStream,
+            tools,
+            executions,
+          });
+
+          const result = streamText({
+            model,
+            system: `You are a helpful assistant that can do various tasks...
+
+${unstable_getSchedulePrompt({ date: new Date() })}
+
+If the user asks to schedule a task, use the schedule tool to schedule the task.
+`,
+            messages: processedMessages,
+            tools,
+            onFinish,
+            onError: (error) => {
+              console.error("Error while streaming:", error);
+            },
+            maxSteps: 10,
+          });
+
+          // Merge the AI response stream with tool execution outputs
+          result.mergeIntoDataStream(dataStream);
+        },
+      });
+
+      return dataStreamResponse;
+    });
+  }
+
+  async executeTask(description: string, task: Schedule<string>) {
+    await this.saveMessages([
+      ...this.messages,
+      {
+        id: generateId(),
+        role: "user",
+        content: `Running scheduled task: ${description}`,
+        createdAt: new Date(),
+      },
+    ]);
+  }
+}
 
 /**
  * Worker entry point that routes incoming requests to the appropriate handler
@@ -39,6 +118,7 @@ export default {
     const TEAM_DOMAIN = process.env.TEAM_DOMAIN;
     const CERTS_URL = `${TEAM_DOMAIN}/cdn-cgi/access/certs`;
     let userId = "no_user";
+    let userEmail = null;
 
     const chatId =
       request.headers.get("chatId") || url.searchParams.get("_pk") || "no_user";
@@ -51,6 +131,7 @@ export default {
         audience: Cloudflare_AUD,
       });
       userId = result.payload.sub || "no_user";
+      userEmail = result.payload;
     } catch (error) {
       console.error("Error verifying token:", error);
     }
@@ -63,10 +144,11 @@ export default {
         .all();
 
       // Format the result into the array you want
-      const chats = results.map((chat) => ({
-        chatId: chat.chatId,
-        title: chat.title,
-      }));
+      const chats =
+        results.map((chat) => ({
+          chatId: chat.chatId,
+          title: chat.title,
+        })) ?? [];
 
       return Response.json(chats);
     }
@@ -91,8 +173,8 @@ export default {
 
       // Step 2: If user does NOT exist, insert them
       if (!result) {
-        await env.DB.prepare("INSERT INTO Users (userId) VALUES (?)")
-          .bind(userId)
+        await env.DB.prepare("INSERT INTO Users (userId, email) VALUES (?, ?)")
+          .bind(userId, userEmail)
           .run();
         console.log("User created successfully.");
       }
