@@ -173,8 +173,8 @@ export default {
 
       // Step 2: If user does NOT exist, insert them
       if (!result) {
-        await env.DB.prepare("INSERT INTO Users (userId, email) VALUES (?, ?)")
-          .bind(userId, userEmail)
+        await env.DB.prepare("INSERT INTO Users (userId) VALUES (?)")
+          .bind(userId)
           .run();
         console.log("User created successfully.");
       }

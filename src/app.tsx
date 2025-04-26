@@ -82,7 +82,7 @@ export default function ChatsView() {
   if (selectedChat) {
     return (
       <div className="h-full w-full flex flex-col">
-        <div className="px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex items-center gap-3 sticky top-0 z-10">
+        <div className="px-4 py-3 border-0 flex items-center gap-3 sticky top-0 z-10">
           <Button
             variant="ghost"
             size="md"

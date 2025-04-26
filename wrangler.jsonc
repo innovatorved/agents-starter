@@ -24,8 +24,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "chat-db",
-      "database_id": "f1d10d75-ddca-4a31-a991-89ae0a124851",
+      "database_name": "chat-user-id-db",
+      "database_id": "c02037dc-20fd-4624-8b7e-885b43285b53",
     },
   ],
   "migrations": [
