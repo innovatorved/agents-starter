@@ -140,8 +140,8 @@ export default {
       );
     }
 
-    const durableObjectId = env.Chat.idFromName(userId);
-    const agentStub = env.Chat.get(durableObjectId);
+    // const durableObjectId = env.Chat.idFromName(userId);
+    // const agentStub = env.Chat.get(durableObjectId);
 
     // return (
     //   // Route the request to our agent or return 404 if not found
