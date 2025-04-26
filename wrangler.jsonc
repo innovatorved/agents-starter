@@ -27,4 +27,10 @@
       "new_sqlite_classes": ["Chat"],
     },
   ],
+  "routes": [
+    {
+      "pattern": "chat.vedgupta.in",
+      "custom_domain": true,
+    },
+  ],
 }
