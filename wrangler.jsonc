@@ -21,6 +21,13 @@
       },
     ],
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "chat-db",
+      "database_id": "6617b9f8-93af-4b0c-88e5-584bfb548711",
+    },
+  ],
   "migrations": [
     {
       "tag": "v1",

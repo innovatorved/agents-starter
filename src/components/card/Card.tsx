@@ -7,6 +7,7 @@ type CardProps = {
   ref?: React.Ref<HTMLElement>;
   tabIndex?: number;
   variant?: "primary" | "secondary" | "ghost" | "destructive";
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
 };
 
 export const Card = ({
@@ -16,6 +17,7 @@ export const Card = ({
   ref,
   tabIndex,
   variant = "secondary",
+  onClick,
 }: CardProps) => {
   const Component = as ?? "div";
   return (
@@ -30,6 +32,7 @@ export const Card = ({
       )}
       ref={ref}
       tabIndex={tabIndex}
+      onClick={onClick} // <-- and added here
     >
       {children}
     </Component>
