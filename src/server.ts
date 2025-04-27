@@ -138,7 +138,7 @@ export default {
 
     if (url.pathname === "/api/chats") {
       const { results } = await env.DB.prepare(
-        "SELECT chatId, title FROM Chats WHERE userId = ? ORDER BY createdTime DESC"
+        "SELECT chatId, title, createdTime FROM Chats WHERE userId = ? ORDER BY createdTime DESC"
       )
         .bind(userId)
         .all();
@@ -148,6 +148,7 @@ export default {
         results.map((chat) => ({
           chatId: chat.chatId,
           title: chat.title,
+          createdTime: String(chat.createdTime),
         })) ?? [];
 
       return Response.json(chats);

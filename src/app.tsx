@@ -14,9 +14,13 @@ import { ArrowLeft, ChatText, Plus, User } from "@phosphor-icons/react";
 // Import Chat component
 import Chat from "./chat";
 
+// utils
+import { formatRelativeTime } from "./lib/utils";
+
 interface ChatInterface {
   chatId: string;
   title: string;
+  createdTime: string;
 }
 
 export default function ChatsView() {
@@ -32,12 +36,7 @@ export default function ChatsView() {
     try {
       setLoading(true);
       const response = await fetch("/api/chats");
-      const data = (await response.json()) as [
-        {
-          chatId: string;
-          title: string;
-        },
-      ];
+      const data = (await response.json()) as Array<ChatInterface>;
       setChats(data);
       setError(null);
     } catch (err) {
@@ -205,6 +204,9 @@ export default function ChatsView() {
                   <Avatar username={chat.title.charAt(0)} />
                   <div className="flex-1">
                     <h3 className="font-medium text-sm">{chat.title}</h3>
+                  </div>
+                  <div className="ml-2 text-xs text-muted-foreground whitespace-nowrap">
+                    {formatRelativeTime(new Date(chat.createdTime))}
                   </div>
                 </div>
               </Card>
