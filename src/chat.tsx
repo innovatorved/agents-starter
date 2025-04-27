@@ -114,7 +114,7 @@ export default function Chat({ chatId = "", title = "" }) {
     <div className="h-[100vh] w-full p-4 flex justify-center items-center bg-fixed overflow-hidden">
       <HasGoogleAIKey />
 
-      <div className="h-[calc(100vh-5rem)] w-full mx-auto max-w-lg md:max-w-3xl flex flex-col shadow-xl rounded-md overflow-hidden relative border border-neutral-300 dark:border-neutral-800">
+      <div className="h-[calc(100vh-5rem)] md:h-[calc(100vh-4rem)] w-full mx-auto max-w-lg md:max-w-3xl flex flex-col shadow-xl rounded-md overflow-hidden relative border border-neutral-300 dark:border-neutral-800">
         <div className="px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex items-center gap-3 sticky top-0 z-10">
           <div className="flex items-center justify-center h-8 w-8">
             <svg
@@ -355,7 +355,7 @@ export default function Chat({ chatId = "", title = "" }) {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
+        {/* Input Area - FIXED: Reorganized input, submit button, and attribution */}
         <form
           onSubmit={(e) =>
             handleAgentSubmit(e, {
@@ -393,11 +393,24 @@ export default function Chat({ chatId = "", title = "" }) {
             <Button
               type="submit"
               shape="square"
-              className="rounded-full h-10 w-10 flex-shrink-0"
+              className="rounded-full h-10 w-10"
               disabled={pendingToolCallConfirmation || !agentInput.trim()}
             >
               <PaperPlaneRight size={16} />
             </Button>
+          </div>
+
+          {/* Attribution Footer - FIXED: Moved outside of flex-shrink-0 column and made it full width */}
+          <div className="pt-2 text-xs text-center text-muted-foreground">
+            Built by Ved Gupta with Cloudflare Stack.
+            <a
+              href="https://github.com/innovatorved/chat-cloudflare-tools"
+              className="ml-1 text-[#F48120] hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub: innovatorved/chat-cloudflare-tools
+            </a>
           </div>
         </form>
       </div>

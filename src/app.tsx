@@ -108,7 +108,7 @@ export default function ChatsView() {
 
   return (
     <div className="h-[100vh] w-full p-4 flex justify-center items-center bg-fixed overflow-hidden">
-      <div className="h-[calc(100vh-5rem)] w-full mx-auto max-w-lg md:max-w-3xl flex flex-col shadow-xl rounded-md overflow-hidden relative border border-neutral-300 dark:border-neutral-800">
+      <div className="h-[calc(100vh-5rem)] md:h-[calc(100vh-4rem)] w-full mx-auto max-w-lg md:max-w-3xl flex flex-col shadow-xl rounded-md overflow-hidden relative border border-neutral-300 dark:border-neutral-800">
         <div className="px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex items-center gap-3 sticky top-0 z-10">
           <div className="flex items-center justify-center h-8 w-8">
             <svg
@@ -190,6 +190,18 @@ export default function ChatsView() {
                   <p className="text-muted-foreground text-sm">
                     Start a new conversation by clicking the + button.
                   </p>
+                  <div className="text-xs text-muted-foreground pt-2 border-t border-neutral-200 dark:border-neutral-800 mt-2">
+                    Built by Ved Gupta at Cloudflare
+                    <br />
+                    <a
+                      href="https://github.com/innovatorved/chat-cloudflare-tools"
+                      className="text-[#F48120] hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      GitHub: innovatorved/chat-cloudflare-tools
+                    </a>
+                  </div>
                 </div>
               </Card>
             </div>
@@ -212,6 +224,19 @@ export default function ChatsView() {
               </Card>
             ))
           )}
+        </div>
+
+        {/* Attribution Footer */}
+        <div className="border-t border-neutral-300 dark:border-neutral-800 py-2 px-4 text-xs text-center text-muted-foreground">
+          Built by Ved Gupta with Cloudflare Stack.
+          <a
+            href="https://github.com/innovatorved/chat-cloudflare-tools"
+            className="ml-1 text-[#F48120] hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub: innovatorved/chat-cloudflare-tools
+          </a>
         </div>
       </div>
     </div>
