@@ -5,7 +5,9 @@ DROP TABLE IF EXISTS Users;
 -- Create Users table
 CREATE TABLE IF NOT EXISTS Users (
   userId TEXT PRIMARY KEY,
-  email TEXT UNIQUE
+  email TEXT UNIQUE,
+  passwordHash TEXT NOT NULL,
+  passwordSalt TEXT NOT NULL
 );
 
 -- Create Chats table

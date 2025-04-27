@@ -1,20 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
-
 import { generateId } from "ai";
-
-// Component imports
 import { Button } from "@/components/button/Button";
 import { Card } from "@/components/card/Card";
 import { Input } from "@/components/input/Input";
 import { Avatar } from "@/components/avatar/Avatar";
-
-// Icon imports
-import { ArrowLeft, ChatText, Plus, User } from "@phosphor-icons/react";
-
-// Import Chat component
+import Login from "@/components/auth/Login";
+import SignUp from "@/components/auth/Signup";
+import { ArrowLeft, ChatText, Plus } from "@phosphor-icons/react";
 import Chat from "./chat";
-
-// utils
 import { formatRelativeTime } from "./lib/utils";
 
 interface ChatInterface {
@@ -30,12 +23,28 @@ export default function ChatsView() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [creatingChat, setCreatingChat] = useState(false);
   const [newChatTitle, setNewChatTitle] = useState("");
+  const [lastCreatedChatTitle, setLastCreatedChatTitle] = useState(""); // for passing to Chat component
 
-  // Fetch chats
+  const [authenticated, setAuthenticated] = useState(false);
+  const [authView, setAuthView] = useState<"login" | "signup">("login");
+
+  // Auth check
+  useEffect(() => {
+    fetch("/auth/me")
+      .then((r) => r.json())
+      .then((data) => setAuthenticated(!!data.authenticated))
+      .catch(() => setAuthenticated(false));
+  }, []);
+
   const fetchChats = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch("/api/chats");
+      if (response.status === 401) {
+        setAuthenticated(false);
+        setAuthView("login");
+        return;
+      }
       const data = (await response.json()) as Array<ChatInterface>;
       setChats(data);
       setError(null);
@@ -47,24 +56,58 @@ export default function ChatsView() {
     }
   }, []);
 
+  const handleLogout = async () => {
+    await fetch("/auth/logout");
+    setAuthenticated(false);
+    setAuthView("login");
+    setChats([]);
+    setLoading(true);
+    setError(null);
+    setSelectedChat(null);
+    setCreatingChat(false);
+    setNewChatTitle("");
+    setLastCreatedChatTitle("");
+  };
+
+  const handleLogin = async () => {
+    setAuthenticated(true);
+    setChats([]);
+    setError(null);
+    setSelectedChat(null);
+    setCreatingChat(false);
+    setNewChatTitle("");
+    setLastCreatedChatTitle("");
+    await fetchChats(); // Immediately fetch after login
+  };
+
   useEffect(() => {
     fetchChats();
   }, [fetchChats]);
 
-  // Handle chat selection
+  // Auth screens
+  if (!authenticated) {
+    if (authView === "signup")
+      return <SignUp onSignUp={handleLogin} setView={setAuthView} />;
+    return <Login onLogin={handleLogin} setView={setAuthView} />;
+  }
+
+  // UI actions
   const openChat = (chatId: string) => {
     setSelectedChat(chatId);
+    setLastCreatedChatTitle(""); // Reset for existing chats
   };
 
-  // Handle creating a new chat
   const startNewChat = () => {
     setCreatingChat(true);
   };
 
   const createChat = () => {
+    if (!newChatTitle.trim()) return;
     const chatId = generateId();
     setSelectedChat(chatId);
+    setLastCreatedChatTitle(newChatTitle);
     setCreatingChat(false);
+    setNewChatTitle("");
   };
 
   const cancelCreateChat = () => {
@@ -72,14 +115,19 @@ export default function ChatsView() {
     setNewChatTitle("");
   };
 
-  // Go back to chat list
   const goBackToList = async () => {
     setSelectedChat(null);
+    setLastCreatedChatTitle("");
     await fetchChats();
   };
 
-  // If a chat is selected, show the Chat component
+  // -------------- Render ---------------
+
+  // Chat detail view
   if (selectedChat) {
+    const chatObj = chats.find((chat) => chat.chatId === selectedChat);
+    // Prefer manually set title if this is a brand new chat (not in chats array yet)
+    const title = chatObj?.title || lastCreatedChatTitle || "New Chat";
     return (
       <div className="h-full w-full flex flex-col">
         <div className="px-4 py-3 border-0 flex items-center gap-3 sticky top-0 z-10">
@@ -93,19 +141,20 @@ export default function ChatsView() {
             <ArrowLeft size={20} />
           </Button>
           <div className="flex-1">
-            <h2 className="font-semibold text-base">
-              {chats.find((chat) => chat.chatId === selectedChat)?.title ||
-                "New Chat"}
-            </h2>
+            <h2 className="font-semibold text-base">{title}</h2>
           </div>
+          <Button variant="ghost" size="sm" onClick={handleLogout}>
+            Logout
+          </Button>
         </div>
         <div className="flex-1 overflow-hidden">
-          <Chat chatId={selectedChat} title={newChatTitle} />
+          <Chat chatId={selectedChat} title={title} />
         </div>
       </div>
     );
   }
 
+  // List view
   return (
     <div className="h-[100vh] w-full p-4 flex justify-center items-center bg-fixed overflow-hidden">
       <div className="h-[calc(100vh-5rem)] md:h-[calc(100vh-4rem)] w-full mx-auto max-w-lg md:max-w-3xl flex flex-col shadow-xl rounded-md overflow-hidden relative border border-neutral-300 dark:border-neutral-800">
@@ -127,11 +176,9 @@ export default function ChatsView() {
               <use href="#ai:local:agents" />
             </svg>
           </div>
-
           <div className="flex-1">
             <h2 className="font-semibold text-base">Chat List</h2>
           </div>
-
           <Button
             variant="primary"
             size="md"
@@ -140,6 +187,17 @@ export default function ChatsView() {
             onClick={startNewChat}
           >
             <Plus size={20} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              await fetch("/auth/logout");
+              setAuthenticated(false);
+              setAuthView("login");
+            }}
+          >
+            Logout
           </Button>
         </div>
 
@@ -151,9 +209,7 @@ export default function ChatsView() {
               <Input
                 placeholder="Enter chat title..."
                 value={newChatTitle}
-                onValueChange={(value) => {
-                  setNewChatTitle(value);
-                }}
+                onValueChange={setNewChatTitle}
                 className="w-full"
               />
             </div>
@@ -225,7 +281,6 @@ export default function ChatsView() {
             ))
           )}
         </div>
-
         {/* Attribution Footer */}
         <div className="border-t border-neutral-300 dark:border-neutral-800 py-2 px-4 text-xs text-center text-muted-foreground">
           Built by Ved Gupta with Cloudflare Stack.

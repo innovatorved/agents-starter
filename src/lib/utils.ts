@@ -45,3 +45,15 @@ export function formatRelativeTime(date: Date): string {
     day: "numeric",
   });
 }
+
+export function setSessionCookie(userId: string) {
+  // Use a signed cookie for production! This is for demo.
+  // In production, use a proper session token.
+  return `session=${btoa(JSON.stringify({ userId }))}; Path=/; HttpOnly; Secure; SameSite=Strict`;
+}
+
+export function getSessionCookie(request: Request): string | null {
+  const cookie = request.headers.get("Cookie") || "";
+  const match = cookie.match(/session=([^;]+)/);
+  return match ? match[1] : null;
+}
