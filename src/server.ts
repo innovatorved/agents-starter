@@ -53,7 +53,7 @@ export class Chat extends AIChatAgent<Env> {
 
           const result = streamText({
             model,
-            system: `You are a helpful assistant that can do various tasks...
+            system: `You are a helpful assistant that can assist users by answering questions and helping them with their queries and do various tasks...
 
 ${unstable_getSchedulePrompt({ date: new Date() })}
 
