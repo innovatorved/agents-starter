@@ -113,7 +113,8 @@ export default function Chat({ chatId = "", title = "" }) {
   return (
     <div className="h-[100vh] w-full p-4 flex justify-center items-center bg-fixed overflow-hidden">
       <HasGoogleAIKey />
-      <div className="h-[calc(100vh-2rem)] w-full mx-auto max-w-lg md:max-w-3xl flex flex-col shadow-xl rounded-md overflow-hidden relative border border-neutral-300 dark:border-neutral-800">
+
+      <div className="h-[calc(100vh-5rem)] w-full mx-auto max-w-lg md:max-w-3xl flex flex-col shadow-xl rounded-md overflow-hidden relative border border-neutral-300 dark:border-neutral-800">
         <div className="px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex items-center gap-3 sticky top-0 z-10">
           <div className="flex items-center justify-center h-8 w-8">
             <svg
