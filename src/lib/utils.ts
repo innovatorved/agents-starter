@@ -57,3 +57,14 @@ export function getSessionCookie(request: Request): string | null {
   const match = cookie.match(/session=([^;]+)/);
   return match ? match[1] : null;
 }
+
+export function processChatsData(results: Record<string, unknown>[]) {
+  const chats =
+    results.map((chat) => ({
+      chatId: chat.chatId,
+      title: chat.title,
+      createdTime: String(chat.createdTime),
+    })) ?? [];
+
+  return chats;
+}

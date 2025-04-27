@@ -1,4 +1,8 @@
-import { getSessionCookie, setSessionCookie } from "./lib/utils";
+import {
+  getSessionCookie,
+  processChatsData,
+  setSessionCookie,
+} from "./lib/utils";
 import { getAgentByName, type Schedule } from "agents";
 
 import { unstable_getSchedulePrompt } from "agents/schedule";
@@ -14,6 +18,14 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { executions, tools } from "@/tools";
 import { hashPassword, verifyPassword } from "./lib/crypto-utils";
 import { processToolCalls } from "./utils";
+import {
+  checkUserExists,
+  createChat,
+  createUser,
+  getChatById,
+  getChatsByUserId,
+  getUserByEmail,
+} from "./lib/db";
 
 const model = google("gemini-2.0-flash");
 export const agentContext = new AsyncLocalStorage<Chat>();
@@ -108,19 +120,13 @@ export default {
         });
 
       // check if exists
-      const exists = await env.DB.prepare("SELECT 1 FROM Users WHERE email = ?")
-        .bind(email)
-        .first();
+      const exists = await checkUserExists(env, email);
       if (exists)
         return Response.json({ success: false, message: "Already registered" });
 
       const { salt, hash } = await hashPassword(password);
       const userId = crypto.randomUUID();
-      await env.DB.prepare(
-        "INSERT INTO Users (userId, email, passwordHash, passwordSalt) VALUES (?, ?, ?, ?)"
-      )
-        .bind(userId, email, hash, salt)
-        .run();
+      await createUser(env, email, hash, salt);
 
       const resp = Response.json({ success: true });
       resp.headers.set("Set-Cookie", setSessionCookie(userId));
@@ -141,12 +147,8 @@ export default {
           message: "Both fields required",
         });
 
-      const row = await env.DB.prepare(
-        "SELECT userId, passwordHash, passwordSalt FROM Users WHERE email = ?"
-      )
-        .bind(email)
-        .first();
-      if (!row || !row.passwordHash || !row.passwordSalt)
+      const user = await getUserByEmail(env, email);
+      if (!user || !user.passwordHash || !user.passwordSalt)
         return Response.json({
           success: false,
           message: "Invalid credentials",
@@ -154,8 +156,8 @@ export default {
 
       const valid = await verifyPassword(
         password,
-        row.passwordSalt,
-        row.passwordHash
+        user.passwordSalt,
+        user.passwordHash
       );
       if (!valid)
         return Response.json({
@@ -164,7 +166,7 @@ export default {
         });
 
       const resp = Response.json({ success: true });
-      resp.headers.set("Set-Cookie", setSessionCookie(row.userId));
+      resp.headers.set("Set-Cookie", setSessionCookie(user.userId));
       return resp;
     }
 
@@ -182,18 +184,9 @@ export default {
     if (url.pathname === "/api/chats") {
       if (userId === "no_user") return Response.json([], { status: 401 });
 
-      const { results } = await env.DB.prepare(
-        "SELECT chatId, title, createdTime FROM Chats WHERE userId = ? ORDER BY createdTime DESC"
-      )
-        .bind(userId)
-        .all();
+      const results = await getChatsByUserId(env, userId);
 
-      const chats =
-        results.map((chat) => ({
-          chatId: chat.chatId,
-          title: chat.title,
-          createdTime: String(chat.createdTime),
-        })) ?? [];
+      const chats = processChatsData(results);
 
       return Response.json(chats);
     }
@@ -204,17 +197,9 @@ export default {
       request.headers.get("chatId") || url.searchParams.get("_pk") || "no_user";
     if (userId !== "no_user" && chatId !== "no_user") {
       // create chat if missing
-      const result = await env.DB.prepare(
-        "SELECT chatId FROM Chats WHERE chatId = ?"
-      )
-        .bind(chatId)
-        .first();
+      const result = await getChatById(env, chatId);
       if (!result) {
-        await env.DB.prepare(
-          "INSERT INTO Chats (chatId, userId, title) VALUES (?, ?, ?)"
-        )
-          .bind(chatId, userId, title)
-          .run();
+        await createChat(env, userId, chatId, title);
       }
     }
 
