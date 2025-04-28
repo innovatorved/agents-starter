@@ -10,7 +10,7 @@
     "preview": "vite build && wrangler preview",
     "test": "vitest",
     "types": "wrangler types",
-    "format": "prettier --write .",
+    "format": "biome format --write",
     "check": "prettier . --check && biome lint && tsc"
   },
   "keywords": [

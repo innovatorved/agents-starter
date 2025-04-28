@@ -1,33 +1,31 @@
 import {
+  generateRandomUUID,
   getSessionCookie,
-  processChatsData,
-  setSessionCookie,
+  processChatsData
 } from "./lib/utils";
 import { getAgentByName, type Schedule } from "agents";
 
 import { unstable_getSchedulePrompt } from "agents/schedule";
 import { AIChatAgent } from "agents/ai-chat-agent";
 import {
-  createDataStreamResponse,
-  generateId,
-  streamText,
-  type StreamTextOnFinishCallback,
+  createDataStreamResponse, streamText,
+  type StreamTextOnFinishCallback
 } from "ai";
-import { google } from "@ai-sdk/google";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { executions, tools } from "@/tools";
-import { hashPassword, verifyPassword } from "./lib/crypto-utils";
 import { processToolCalls } from "./utils";
 import {
-  checkUserExists,
-  createChat,
-  createUser,
-  getChatById,
-  getChatsByUserId,
-  getUserByEmail,
+  createChat, getChatById,
+  getChatsByUserId
 } from "./lib/db";
+import {
+  checkAuthenticatedUserRoute,
+  loginUserRoute,
+  logoutUserRoute,
+  registerUserRoute,
+} from "./routes/auth";
+import { model } from "./lib/ai";
 
-const model = google("gemini-2.0-flash");
 export const agentContext = new AsyncLocalStorage<Chat>();
 
 export class Chat extends AIChatAgent<Env> {
@@ -43,7 +41,7 @@ export class Chat extends AIChatAgent<Env> {
           });
 
           const result = streamText({
-            model,
+            model: model,
             system: `You are a helpful assistant...
 ${unstable_getSchedulePrompt({ date: new Date() })}
 If the user asks to schedule a task, use the schedule tool to schedule the task.`,
@@ -64,7 +62,7 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
     await this.saveMessages([
       ...this.messages,
       {
-        id: generateId(),
+        id: generateRandomUUID(),
         role: "user",
         content: `Running scheduled task: ${description}`,
         createdAt: new Date(),
@@ -85,89 +83,22 @@ export default {
 
     // 2. Auth - Me
     if (url.pathname === "/auth/me") {
-      const sess = getSessionCookie(request);
-      if (sess) {
-        try {
-          const session = JSON.parse(atob(sess));
-          if (session.userId) return Response.json({ authenticated: true });
-        } catch {}
-      }
-      return Response.json({ authenticated: false });
+      return await checkAuthenticatedUserRoute(request, env);
     }
 
     // 3. Auth - Logout
     if (url.pathname === "/auth/logout") {
-      const resp = Response.json({ success: true });
-      resp.headers.set(
-        "Set-Cookie",
-        "session=; Path=/; HttpOnly; Secure; SameSite=Strict; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
-      );
-      return resp;
+      return logoutUserRoute(request, env);
     }
 
     // 4. Auth - Signup
     if (url.pathname === "/auth/signup") {
-      if (request.method !== "POST")
-        return new Response("Method Not Allowed", { status: 405 });
-      const { email, password } = (await request.json()) as {
-        email: string;
-        password: string;
-      };
-      if (!email || !password)
-        return Response.json({
-          success: false,
-          message: "Both fields required",
-        });
-
-      // check if exists
-      const exists = await checkUserExists(env, email);
-      if (exists)
-        return Response.json({ success: false, message: "Already registered" });
-
-      const { salt, hash } = await hashPassword(password);
-      const userId = crypto.randomUUID();
-      await createUser(env, email, hash, salt);
-
-      const resp = Response.json({ success: true });
-      resp.headers.set("Set-Cookie", setSessionCookie(userId));
-      return resp;
+      return await registerUserRoute(request, env);
     }
 
     // 5. Auth - Login
     if (url.pathname === "/auth/login") {
-      if (request.method !== "POST")
-        return new Response("Method Not Allowed", { status: 405 });
-      const { email, password } = (await request.json()) as {
-        email: string;
-        password: string;
-      };
-      if (!email || !password)
-        return Response.json({
-          success: false,
-          message: "Both fields required",
-        });
-
-      const user = await getUserByEmail(env, email);
-      if (!user || !user.passwordHash || !user.passwordSalt)
-        return Response.json({
-          success: false,
-          message: "Invalid credentials",
-        });
-
-      const valid = await verifyPassword(
-        password,
-        user.passwordSalt,
-        user.passwordHash
-      );
-      if (!valid)
-        return Response.json({
-          success: false,
-          message: "Invalid credentials",
-        });
-
-      const resp = Response.json({ success: true });
-      resp.headers.set("Set-Cookie", setSessionCookie(user.userId));
-      return resp;
+      return await loginUserRoute(request, env);
     }
 
     // 6. -- "Authenticated" part of the app --

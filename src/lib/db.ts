@@ -1,3 +1,4 @@
+
 export async function checkUserExists(env: Env, email: string) {
   const exists = await env.DB.prepare("SELECT 1 FROM Users WHERE email = ?")
     .bind(email)
@@ -7,11 +8,11 @@ export async function checkUserExists(env: Env, email: string) {
 
 export async function createUser(
   env: Env,
+  userId: string,
   email: string,
   hash: string,
   salt: string
 ) {
-  const userId = crypto.randomUUID();
   await env.DB.prepare(
     "INSERT INTO Users (userId, email, passwordHash, passwordSalt) VALUES (?, ?, ?, ?)"
   )

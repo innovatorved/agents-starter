@@ -68,3 +68,7 @@ export function processChatsData(results: Record<string, unknown>[]) {
 
   return chats;
 }
+
+export function generateRandomUUID(): string {
+  return crypto.randomUUID();
+}

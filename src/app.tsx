@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { generateId } from "ai";
 import { Button } from "@/components/button/Button";
 import { Card } from "@/components/card/Card";
 import { Input } from "@/components/input/Input";
@@ -8,7 +7,7 @@ import Login from "@/components/auth/Login";
 import SignUp from "@/components/auth/Signup";
 import { ArrowLeft, ChatText, Plus } from "@phosphor-icons/react";
 import Chat from "./chat";
-import { formatRelativeTime } from "./lib/utils";
+import { formatRelativeTime, generateRandomUUID } from "./lib/utils";
 
 interface ChatInterface {
   chatId: string;
@@ -103,7 +102,7 @@ export default function ChatsView() {
 
   const createChat = () => {
     if (!newChatTitle.trim()) return;
-    const chatId = generateId();
+    const chatId = generateRandomUUID();
     setSelectedChat(chatId);
     setLastCreatedChatTitle(newChatTitle);
     setCreatingChat(false);
@@ -247,7 +246,7 @@ export default function ChatsView() {
                     Start a new conversation by clicking the + button.
                   </p>
                   <div className="text-xs text-muted-foreground pt-2 border-t border-neutral-200 dark:border-neutral-800 mt-2">
-                    Built by Ved Gupta at Cloudflare
+                    Built by Ved Gupta with Cloudflare Stack
                     <br />
                     <a
                       href="https://github.com/innovatorved/chat-cloudflare-tools"

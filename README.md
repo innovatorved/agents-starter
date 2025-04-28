@@ -50,8 +50,23 @@ The application is hosted at: **https://chat.vedgupta.in**
 4. **Configure Custom Authenticationpolicies**
 5. **Deploy:**
    ```bash
-   npx wrangler deploy
+   npm run deploy
    ```
+
+## Database
+
+- All messages are saved to Durable Objects, organized by chat ID for efficient retrieval.
+- All user data is stored in Cloudflare D1, ensuring secure and scalable storage.
+
+**Deploy your D1 database locally.**
+```bash
+npx wrangler d1 execute chat-user-id-db --local --file=./schema.sql
+```
+
+**Deploy your D1 database to Cloudflare.**
+```bash
+npx wrangler d1 execute chat-user-id-db --remote --file=./schema.sql
+```
 
 ## Hosting
 
