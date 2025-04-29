@@ -1,0 +1,17 @@
+{
+  "password": {
+    "minLength": 8,
+    "maxLength": 64,
+    "requireUppercase": true,
+    "requireLowercase": true,
+    "requireNumber": true,
+    "requireSpecial": true
+  },
+  "registration": {
+    "allowedEmailDomains": ["vedgupta.in", "*"]
+  },
+  "login": {
+    "maxAttempts": 5,
+    "lockoutMinutes": 10
+  }
+}

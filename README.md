@@ -92,7 +92,22 @@ npx wrangler kv namespace create CACHE_CHAT
 
 ### 6. Configure Authentication
 
-Ensure Custom Authentication policies are set up in your Cloudflare dashboard.
+Authentication policies are defined in the `auth-policies.json` file.
+Ensure this file includes your desired password and login policies, and that it is uploaded to Cloudflare KV as shown above.
+
+Custom Authentication will enforce the settings from `auth-policies.json` during user registration and login.
+
+**Upload your authentication policies (for development):**
+
+```bash
+npx wrangler kv key put --binding=CACHE_CHAT auth-policies "$(cat auth-policies.json) ---local"
+```
+
+**Upload your authentication policies:**
+
+```bash
+npx wrangler kv key put --binding=CACHE_CHAT auth-policies "$(cat auth-policies.json)"
+```
 
 ---
 

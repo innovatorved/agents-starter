@@ -1,23 +1,23 @@
 import {
   generateRandomUUID,
   getSessionCookie,
-  processChatsData
+  processChatsData,
 } from "./lib/utils";
 import { getAgentByName, type Schedule } from "agents";
+
+import { getAuthPolicies } from "./lib/policy";
 
 import { unstable_getSchedulePrompt } from "agents/schedule";
 import { AIChatAgent } from "agents/ai-chat-agent";
 import {
-  createDataStreamResponse, streamText,
-  type StreamTextOnFinishCallback
+  createDataStreamResponse,
+  streamText,
+  type StreamTextOnFinishCallback,
 } from "ai";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { executions, tools } from "@/tools";
 import { processToolCalls } from "./utils";
-import {
-  createChat, getChatById,
-  getChatsByUserId
-} from "./lib/db";
+import { createChat, getChatById, getChatsByUserId } from "./lib/db";
 import {
   checkAuthenticatedUserRoute,
   loginUserRoute,
@@ -101,6 +101,11 @@ export default {
       return await loginUserRoute(request, env);
     }
 
+    if (url.pathname === "/auth/policy") {
+      const policies = await getAuthPolicies(env);
+      return Response.json(policies);
+    }
+
     // 6. -- "Authenticated" part of the app --
     let userId = "no_user";
     const sess = getSessionCookie(request);
@@ -116,7 +121,6 @@ export default {
       if (userId === "no_user") return Response.json([], { status: 401 });
 
       const results = await getChatsByUserId(env, userId);
-
       const chats = processChatsData(results);
 
       return Response.json(chats);
