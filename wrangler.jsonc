@@ -28,6 +28,12 @@
       "database_id": "c02037dc-20fd-4624-8b7e-885b43285b53",
     },
   ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE_CHAT",
+      "id": "44668a1301224e87b7b372104d338d5e",
+    },
+  ],
   "migrations": [
     {
       "tag": "v1",

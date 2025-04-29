@@ -68,6 +68,17 @@ npx wrangler d1 execute chat-user-id-db --local --file=./schema.sql
 npx wrangler d1 execute chat-user-id-db --remote --file=./schema.sql
 ```
 
+## KV Bindings
+
+- KV bindings are used to cache database queries
+- KV bindings are used to store chat room metadata and user information.
+
+**Deploy your KV bindings**
+```bash
+npx wrangler kv namespace create CACHE_CHAT
+```
+
+
 ## Hosting
 
 - The live chat app is hosted at [https://chat.vedgupta.in](https://chat.vedgupta.in).
