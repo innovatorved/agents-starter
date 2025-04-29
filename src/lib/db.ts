@@ -1,3 +1,5 @@
+import { kvGet, kvSet, kvDel } from "./cache";
+
 export async function checkUserExists(env: Env, email: string) {
   const cacheKey = `user-exists:${email}`;
   let exists = await kvGet<boolean>(env, cacheKey);

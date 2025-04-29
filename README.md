@@ -1,90 +1,126 @@
 # Cloudflare Chat App
 
-A modern chat application powered by the Cloudflare stack.
+A modern chat application powered by the Cloudflare stack, offering secure, real-time messaging and persistent chat history.
 
-## Overview
+Live at: **[https://chat.vedgupta.in](https://chat.vedgupta.in)**
 
-This project includes a robust, real-time chat application, leveraging **Cloudflare Durable Objects** to manage chat state and **Cloudflare D1** to store chat history by chat IDs. User authentication is enforced with **Custom Authentication Security** to ensure only authorized users may access the service.
-
-The application is hosted at: **https://chat.vedgupta.in**
+---
 
 ## Features
 
-- **Real-Time Chat:** Fast and scalable messaging using Cloudflare Durable Objects for chat room state management.
-- **Chat History:** Persists chat messages and history in Cloudflare D1 for reliable retrieval and record-keeping.
-- **User Authentication:** Secured by Custom Authentication, allowing only verified and authenticated users.
-- **Seamless Hosting:** Hosted globally via Cloudflare’s edge infrastructure at [chat.vedgupta.in](https://chat.vedgupta.in).
-- **High Performance:** Low-latency by design, utilizing Cloudflare’s edge and serverless platform.
+- **Real-Time Chat:** Fast messaging with Cloudflare Durable Objects for stateful chat rooms.
+- **Chat History:** Messages stored in Durable object and Cloudflare D1 for reliable retrieval by chat ID.
+- **User Authentication:** Only authorized users can access chat rooms via Custom Authentication.
+- **Edge Hosting:** Global, low-latency performance on Cloudflare’s edge network.
 
 ## Technical Stack
 
-- **Frontend:** (Describe your UI framework here, e.g., React.js, Vitejs)
-- **Backend/Serverless:** Cloudflare Workers
+- **Frontend:** React, Vite.
+- **Serverless Backend:** Cloudflare Workers
 - **State Management:** Cloudflare Durable Objects
-- **Database:** Cloudflare D1 (serverless DB)
-- **Authentication:** Custom AuthenticationSecurity
+- **Database:** Cloudflare D1 (serverless SQLite)
+- **Caching:** Cloudflare KV for caching and metadata storage
+- **Authentication:** Custom Authentication Security
 
-## How it Works
+---
 
-1. **Stateful Chat:** Each chat room is backed by a Durable Object to manage real-time messages and room presence.
-2. **Persistent Storage:** All messages are saved to Cloudflare D1, organized by chat ID for efficient retrieval.
-3. **Authentication Flow:**
-    - Users are required to log in using Custom Authenticationauthentication before gaining access to chat rooms.
-    - Session management and user identities are securely managed by Cloudflare.
-4. **History & Retrieval:**
-    - Chat history is retrieved from D1 when users enter a room, and new messages are stored instantly.
+## How It Works
+
+1. **Messages** are saved to D1, organized by chat ID.
+2. **Authentication:** Users must log in using Custom Authentication before chat access.
+3. **Chat history** is loaded from D1 when entering a room; new messages are stored instantly.
+4. **KV bindings** are used for caching and storing room/user metadata.
+
+---
 
 ## Prerequisites
 
 - Cloudflare account
 - Access to Cloudflare Workers, Durable Objects, D1, and Custom Authentication
 
+---
+
 ## Getting Started
 
-1. **Clone the repository**
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-3. **Configure Cloudflare environment** (set up Vars, D1 DB, Durable Objects, etc.)
-4. **Configure Custom Authenticationpolicies**
-5. **Deploy:**
-   ```bash
-   npm run deploy
-   ```
+Follow these steps **in order** to get your own deployment running:
 
-## Database
+### 1. Clone the repository
 
-- All messages are saved to Durable Objects, organized by chat ID for efficient retrieval.
-- All user data is stored in Cloudflare D1, ensuring secure and scalable storage.
+```bash
+git clone https://github.com/innovatorved/chat-cloudflare-stack.git
+cd chat-cloudflare-stack
+```
 
-**Deploy your D1 database locally.**
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Set up your Cloudflare environment
+
+- Configure your `wrangler.jsonc` with proper bindings (D1, Durable Objects, KV, etc.).
+- Set up environment variables as needed.
+
+**If your app uses the Google Generative AI API, make sure to add your API key to Cloudflare secrets:**
+
+```bash
+npx wrangler secret put GOOGLE_GENERATIVE_AI_API_KEY
+```
+
+### 4. Create the D1 Database
+
+**Deploy your D1 database schema locally (for development):**
+
 ```bash
 npx wrangler d1 execute chat-user-id-db --local --file=./schema.sql
 ```
 
-**Deploy your D1 database to Cloudflare.**
+**Or push your schema to Cloudflare (production):**
+
 ```bash
 npx wrangler d1 execute chat-user-id-db --remote --file=./schema.sql
 ```
 
-## KV Bindings
+### 5. Create your KV Namespace
 
-- KV bindings are used to cache database queries
-- KV bindings are used to store chat room metadata and user information.
+Used for caching and metadata:
 
-**Deploy your KV bindings**
 ```bash
 npx wrangler kv namespace create CACHE_CHAT
 ```
 
+### 6. Configure Authentication
+
+Ensure Custom Authentication policies are set up in your Cloudflare dashboard.
+
+---
+
+## Deployment
+
+Once everything is configured:
+
+```bash
+npm run deploy
+```
+
+---
+
+## Database Structure
+
+- **Durable Objects:** For real-time chat room state.
+- **Cloudflare D1:** For persistent user/message history, organized by chat ID.
+- **KV:** For caching queries and storing ephemeral room/user metadata.
+
+---
 
 ## Hosting
 
-- The live chat app is hosted at [https://chat.vedgupta.in](https://chat.vedgupta.in).
+- The application is live at [https://chat.vedgupta.in](https://chat.vedgupta.in).
+
+---
 
 ## Attribution
 
-This project is built on top of [cloudflare/agents-starter](https://github.com/cloudflare/agents-starter) – many thanks to the original authors for their foundational work and open-source contribution.
-
+Built atop [cloudflare/agents-starter](https://github.com/cloudflare/agents-starter).
 _Last modified by **Ved Gupta** – [vedgupta.in](https://vedgupta.in)_
