@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Carme&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital@1&display=swap');
 @import "tailwindcss";
 
 /* Custom variants */
@@ -296,7 +296,7 @@
 /*
 
 body  {
-  font-family: "Carme", sans-serif;
+  font-family: "PT Serif", serif;
   font-weight: 400;
   font-style: normal;
 }
