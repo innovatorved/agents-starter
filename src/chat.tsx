@@ -26,12 +26,12 @@ import {
 // List of tools that require human confirmation
 const toolsRequiringConfirmation: (keyof typeof tools)[] = [];
 
-export default function Chat({ chatId = "", title = "" }) {
-  const [theme, setTheme] = useState<"dark" | "light">(() => {
-    // Check localStorage first, default to dark if not found
-    const savedTheme = localStorage.getItem("theme");
-    return (savedTheme as "dark" | "light") || "dark";
-  });
+export default function Chat({
+  chatId = "",
+  title = "",
+  theme = "dark",
+  toggleTheme = () => {},
+}) {
   const [showDebug, setShowDebug] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -39,36 +39,15 @@ export default function Chat({ chatId = "", title = "" }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  useEffect(() => {
-    // Apply theme class on mount and when theme changes
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-      document.documentElement.classList.remove("light");
-    } else {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.classList.add("light");
-    }
-
-    // Save theme preference to localStorage
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
   // Scroll to bottom on mount
   useEffect(() => {
     scrollToBottom();
   }, [scrollToBottom]);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-  };
-
   const agent = useAgent({
     agent: chatId,
     id: chatId,
   });
-
-  console.log("1", title, chatId);
 
   const {
     messages: agentMessages,
@@ -101,9 +80,9 @@ export default function Chat({ chatId = "", title = "" }) {
         part.type === "tool-invocation" &&
         part.toolInvocation.state === "call" &&
         toolsRequiringConfirmation.includes(
-          part.toolInvocation.toolName as keyof typeof tools
-        )
-    )
+          part.toolInvocation.toolName as keyof typeof tools,
+        ),
+    ),
   );
 
   const formatTime = (date: Date) => {
@@ -243,7 +222,7 @@ export default function Chat({ chatId = "", title = "" }) {
                                   } relative`}
                                 >
                                   {part.text.startsWith(
-                                    "scheduled message"
+                                    "scheduled message",
                                   ) && (
                                     <span className="absolute -top-3 -left-2 text-base">
                                       🕒
@@ -252,7 +231,7 @@ export default function Chat({ chatId = "", title = "" }) {
                                   <p className="text-sm whitespace-pre-wrap">
                                     {part.text.replace(
                                       /^scheduled message: /,
-                                      ""
+                                      "",
                                     )}
                                   </p>
                                 </Card>
@@ -262,7 +241,7 @@ export default function Chat({ chatId = "", title = "" }) {
                                   }`}
                                 >
                                   {formatTime(
-                                    new Date(m.createdAt as unknown as string)
+                                    new Date(m.createdAt as unknown as string),
                                   )}
                                 </p>
                               </div>
@@ -275,7 +254,7 @@ export default function Chat({ chatId = "", title = "" }) {
 
                             if (
                               toolsRequiringConfirmation.includes(
-                                toolInvocation.toolName as keyof typeof tools
+                                toolInvocation.toolName as keyof typeof tools,
                               ) &&
                               toolInvocation.state === "call"
                             ) {
@@ -305,7 +284,7 @@ export default function Chat({ chatId = "", title = "" }) {
                                       {JSON.stringify(
                                         toolInvocation.args,
                                         null,
-                                        2
+                                        2,
                                       )}
                                     </pre>
                                   </div>
@@ -419,7 +398,7 @@ export default function Chat({ chatId = "", title = "" }) {
 }
 
 const hasGoogleAIKeyPromise = fetch("/check-open-ai-key").then((res) =>
-  res.json<{ success: boolean }>()
+  res.json<{ success: boolean }>(),
 );
 
 function HasGoogleAIKey() {

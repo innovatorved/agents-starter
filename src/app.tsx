@@ -8,6 +8,7 @@ import SignUp from "@/components/auth/Signup";
 import { ArrowLeft, ChatText, Plus } from "@phosphor-icons/react";
 import Chat from "./chat";
 import { formatRelativeTime, generateRandomUUID } from "./lib/utils";
+import { Toggle } from "./components/toggle/Toggle";
 
 interface ChatInterface {
   chatId: string;
@@ -24,6 +25,12 @@ export default function ChatsView() {
   const [newChatTitle, setNewChatTitle] = useState("");
   const [lastCreatedChatTitle, setLastCreatedChatTitle] = useState(""); // for passing to Chat component
 
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    // Check localStorage first, default to dark if not found
+    const savedTheme = localStorage.getItem("theme");
+    return (savedTheme as "dark" | "light") || "dark";
+  });
+
   const [authenticated, setAuthenticated] = useState(false);
   const [authView, setAuthView] = useState<"login" | "signup">("login");
 
@@ -34,6 +41,25 @@ export default function ChatsView() {
       .then((data) => setAuthenticated(!!data.authenticated))
       .catch(() => setAuthenticated(false));
   }, []);
+
+  useEffect(() => {
+    // Apply theme class on mount and when theme changes
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+    }
+
+    // Save theme preference to localStorage
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+  };
 
   const fetchChats = useCallback(async () => {
     try {
@@ -147,7 +173,12 @@ export default function ChatsView() {
           </Button>
         </div>
         <div className="flex-1 overflow-hidden">
-          <Chat chatId={selectedChat} title={title} />
+          <Chat
+            chatId={selectedChat}
+            title={title}
+            theme={theme}
+            toggleTheme={toggleTheme}
+          />
         </div>
       </div>
     );
