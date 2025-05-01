@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Carme&display=swap');
 @import "tailwindcss";
 
 /* Custom variants */
@@ -291,4 +292,11 @@
   to {
     transform: rotate(360deg) scale(0.9);
   }
+}
+/*
+
+body  {
+  font-family: "Carme", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
