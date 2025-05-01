@@ -37,7 +37,12 @@ export default function ChatsView() {
   // Auth check
   useEffect(() => {
     fetch("/auth/me")
-      .then((r) => r.json())
+      .then(
+        (r) =>
+          r.json() as unknown as {
+            authenticated: boolean;
+          },
+      )
       .then((data) => setAuthenticated(!!data.authenticated))
       .catch(() => setAuthenticated(false));
   }, []);
